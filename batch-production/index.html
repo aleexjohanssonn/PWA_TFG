@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1a9e5c">
+<title>Mi Negocio · Producción</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preload" href="fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
+<script src="core.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<div class="app">
+<header><div><div class="header-sub">Mi Negocio</div><h1 id="page-title">📊 Mi Caja</h1></div></header>
+<p id="offline-status" class="sr-only" role="status">Tus registros se guardan en este navegador.</p>
+<div id="storage-error" class="alerta-info banner" role="alert" hidden></div>
+<main>
+<section id="view-products" class="view" aria-label="Productos terminados" hidden>
+  <div class="card" id="welcome" style="background:var(--naranja-claro);border-color:#f5c87a;"><h2 class="card-titulo" style="color:var(--naranja);">⭐ Mis Productos Terminados</h2><p style="font-size:0.85rem;color:#7a5500;margin:0;">Aquí ves las unidades que has fabricado y están listas para vender. Elige un producto para registrar una venta.</p></div>
+  <div id="products-list"></div>
+  <button type="button" class="btn btn-borde" id="new-product">⭐ Crear Nuevo Producto</button>
+</section>
+<section id="view-materials" class="view" aria-label="Materiales" hidden>
+  <div class="card"><h2 class="card-titulo">Registrar Compra de Material</h2><p class="hint">Añade lo que compras para fabricar. El pago se resta de tu caja.</p>
+  <form id="purchase-form" novalidate>
+    <div class="campo"><label for="material-name">¿Qué material compraste?</label><input id="material-name" name="name" maxlength="100" placeholder="Ej: Harina, Lana, Cera..." autocomplete="off" required></div>
+    <div class="fila-par"><div class="campo"><label for="purchase-qty">Cantidad</label><input id="purchase-qty" name="qty" type="number" inputmode="decimal" min="0.000001" step="any" placeholder="Ej: 3" required></div><div class="campo"><label for="purchase-unit">Unidad</label><select id="purchase-unit" name="unit"><option value="kg">kg</option><option value="gramos">gramos</option><option value="litros">litros</option><option value="metros">metros</option><option value="unidades">unidades</option></select></div></div>
+    <div class="campo"><label for="purchase-payment">¿Cuánto pagaste en total? ($)</label><input class="input-rojo" id="purchase-payment" name="payment" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="Ej: 300.00" required></div>
+    <p class="form-error" id="purchase-error" role="alert"></p><button class="btn btn-verde" type="submit">✅ Añadir al Almacén</button>
+  </form></div>
+  <div class="seccion-titulo">Mi Almacén</div><div id="materials-list"></div>
+</section>
+<section id="view-production" class="view" aria-label="Registrar fabricación" hidden>
+  <div class="card"><h2 class="card-titulo">Registrar Fabricación</h2><p class="hint">Indica el resultado y el trabajo de <strong>toda esta fabricación</strong>.</p>
+  <form id="production-form" novalidate>
+    <div class="campo"><label for="production-product">Producto terminado</label><select id="production-product" name="productId" required></select></div><button type="button" class="btn btn-gris btn-sm" id="new-product-production">+ Crear un producto</button>
+    <div class="campo"><label for="production-qty">Unidades terminadas</label><input id="production-qty" name="qty" type="number" inputmode="numeric" min="1" step="1" placeholder="Ej.: 30" required><p class="field-help">Solo las unidades que están listas para vender.</p></div>
+    <fieldset><legend>Materiales utilizados</legend><p class="field-help">Cantidades utilizadas en toda la fabricación.</p><div id="consumption-rows"></div><button type="button" class="btn btn-gris btn-sm" id="add-material">+ Añadir material</button><label class="check-label"><input id="no-materials" type="checkbox"> No utilicé materiales</label></fieldset>
+    <div class="campo"><label for="production-minutes">Tiempo total de fabricación (minutos)</label><input id="production-minutes" name="minutes" type="number" inputmode="numeric" min="0" step="1" placeholder="Ej.: 180 para 3 horas" required><p class="field-help">Incluye preparación y fabricación. No es el tiempo de una sola unidad.</p></div>
+    <div class="alerta-info">Al guardar, se descuentan los materiales y se añaden los productos terminados. No se resta dinero de nuevo.</div>
+    <p class="form-error" id="production-error" role="alert"></p><button class="btn btn-verde" type="submit">✅ Guardar Fabricación</button>
+  </form></div>
+</section>
+<section id="view-cash" class="view" aria-label="Caja e historial">
+  <div class="hero"><div class="label">Dinero en Caja</div><div id="cash-total" class="monto">$0.00</div><div class="fila-mini cash-stats"><div class="mini-stat"><div class="label">Entró</div><div class="mini-val pos" id="cash-in">$0.00</div></div><div class="mini-stat"><div class="label">Salió</div><div class="mini-val neg" id="cash-out">$0.00</div></div><div class="mini-stat"><div class="label">Tu pago/h</div><div class="mini-val pos" id="cash-hourly">$0.00</div></div></div></div>
+  <div class="acciones-rapidas"><button type="button" class="accion-btn rojo" data-view="materials"><span class="ico-grande" aria-hidden="true">📦</span><span class="accion-texto">Comprar Material</span></button><button type="button" class="accion-btn verde" data-view="production"><span class="ico-grande" aria-hidden="true">🏭</span><span class="accion-texto">Registrar Fabricación</span></button></div>
+  <div class="seccion-titulo">Últimos Movimientos</div><div id="history-list"></div>
+  <details><summary>¿Cómo se calculan estos números?</summary><p class="hint">La caja muestra ventas cobradas menos compras registradas. El pago por hora usa el tiempo de fabricación asignado a las ventas y su tiempo adicional de venta, después de materiales. No descuenta alquiler, transporte, impuestos ni otros gastos, y no representa todo el trabajo del período.</p></details>
+</section>
+</main>
+<nav class="nav navigation" aria-label="Navegación principal"><button class="nav-btn" type="button" data-view="cash" aria-current="page"><span class="ico" aria-hidden="true">📊</span>Caja</button><button class="nav-btn" type="button" data-view="materials"><span class="ico" aria-hidden="true">📦</span>Almacén</button><button class="nav-btn" type="button" data-view="production"><span class="ico" aria-hidden="true">🏭</span>Fabricar</button><button class="nav-btn" type="button" data-view="products"><span class="ico" aria-hidden="true">⭐</span>Productos</button></nav>
+</div>
+<dialog class="modal-caja" id="product-dialog" aria-labelledby="product-dialog-title"><form id="product-form" novalidate><div class="dialog-heading"><button type="button" class="modal-cerrar close" data-close="product-dialog" aria-label="Cerrar">✕</button><h2 id="product-dialog-title">Nuevo producto</h2></div><p class="hint">Usa un nombre por variante. Por ejemplo: Vela 100 g.</p><div class="campo"><label for="product-name">Nombre del producto</label><input id="product-name" maxlength="100" autocomplete="off" required></div><p class="form-error" id="product-error" role="alert"></p><button type="submit" class="btn btn-verde">Crear producto</button></form></dialog>
+<dialog class="modal-caja" id="sale-dialog" aria-labelledby="sale-title"><form id="sale-form" novalidate><div class="dialog-heading"><button type="button" class="modal-cerrar close" data-close="sale-dialog" aria-label="Cerrar">✕</button><h2 id="sale-title">Registrar venta</h2></div><p class="sale-product" id="sale-product-name"></p><p class="availability" id="sale-available"></p><input id="sale-product-id" type="hidden"><div class="campo"><label for="sale-qty">Unidades vendidas</label><input id="sale-qty" type="number" inputmode="numeric" min="1" step="1" required></div><div class="campo"><label for="sale-payment">Total recibido ($)</label><input class="input-verde" id="sale-payment" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="Lo que te pagaron en total" required></div><div class="campo"><label for="sale-minutes">Tiempo adicional de venta (minutos)</label><input id="sale-minutes" type="number" inputmode="numeric" min="0" step="1" value="0" required><p class="field-help">No repitas la fabricación. Escribe 0 si no añades tiempo de venta.</p></div><p class="form-error" id="sale-error" role="alert"></p><button type="submit" class="btn btn-verde">💸 Cobrar y Ver mis Números</button></form></dialog>
+<dialog class="modal-caja" id="result-dialog" aria-labelledby="result-title"><div class="dialog-heading"><button type="button" class="modal-cerrar close" data-close="result-dialog" aria-label="Cerrar">✕</button><h2 id="result-title">Venta registrada</h2></div><div id="result-content"></div><button type="button" class="btn btn-gris" data-close="result-dialog">Volver a productos</button></dialog>
+<dialog class="modal-caja" id="history-dialog" aria-labelledby="history-title"><div class="dialog-heading"><button type="button" class="modal-cerrar close" data-close="history-dialog" aria-label="Cerrar">✕</button><h2 id="history-title">Detalle</h2></div><div id="history-content"></div></dialog>
+<dialog class="modal-caja" id="cancel-dialog" aria-labelledby="cancel-title"><form id="cancel-form"><h2 id="cancel-title">Anular registro</h2><p id="cancel-description"></p><p class="hint">El registro quedará marcado como anulado en el historial. Esta acción corrige una anotación; no registra una devolución real al cliente.</p><p class="form-error" id="cancel-error" role="alert"></p><button type="submit" class="btn btn-rojo">Sí, anular registro</button><button type="button" class="btn btn-gris" data-close="cancel-dialog">Volver sin anular</button></form></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
